@@ -2,12 +2,13 @@
 
 use Laravel\Dusk\Page;
 use Laravel\Dusk\Browser;
+use Mockery as m;
 
 class BrowserTest extends PHPUnit_Framework_TestCase
 {
     public function test_visit()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $driver->shouldReceive('navigate->to')->with('http://laravel.dev/login');
         $browser = new Browser($driver);
         Browser::$baseUrl = 'http://laravel.dev';
@@ -17,7 +18,7 @@ class BrowserTest extends PHPUnit_Framework_TestCase
 
     public function test_visit_with_page_object()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $driver->shouldReceive('navigate->to')->with('http://laravel.dev/login');
         $browser = new Browser($driver);
         Browser::$baseUrl = 'http://laravel.dev';
@@ -31,11 +32,16 @@ class BrowserTest extends PHPUnit_Framework_TestCase
 
     public function test_on_method_sets_current_page()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $browser = new Browser($driver);
         Browser::$baseUrl = 'http://laravel.dev';
 
-        $browser->on($page = new BrowserTestPage);
+        $page = m::mock(BrowserTestPage::class)->makePartial();
+        $page->shouldReceive('assert')->with(Mockery::on(function(Browser $browser){
+            $this->assertEquals(['@modal' => '#modal'], $browser->resolver->elements);
+        }))->once();
+
+        $browser->on($page);
 
         $this->assertEquals(['@modal' => '#modal'], $browser->resolver->elements);
         $this->assertEquals($page, $browser->page);
@@ -44,7 +50,7 @@ class BrowserTest extends PHPUnit_Framework_TestCase
 
     public function test_refresh_method()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $driver->shouldReceive('navigate->refresh')->once();
         $browser = new Browser($driver);
 
@@ -53,7 +59,7 @@ class BrowserTest extends PHPUnit_Framework_TestCase
 
     public function test_with_method()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $browser = new Browser($driver);
 
         $browser->with('prefix', function ($browser) {
@@ -64,7 +70,7 @@ class BrowserTest extends PHPUnit_Framework_TestCase
 
     public function test_with_method_with_page()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $driver->shouldReceive('navigate->to')->with('http://laravel.dev/login');
         $browser = new Browser($driver);
         Browser::$baseUrl = 'http://laravel.dev';
@@ -80,7 +86,7 @@ class BrowserTest extends PHPUnit_Framework_TestCase
 
     public function test_page_macros()
     {
-        $driver = Mockery::mock(StdClass::class);
+        $driver = m::mock(StdClass::class);
         $driver->shouldReceive('navigate->to')->with('http://laravel.dev/login');
         $browser = new Browser($driver);
         Browser::$baseUrl = 'http://laravel.dev';
